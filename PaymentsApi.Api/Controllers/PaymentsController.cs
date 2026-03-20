@@ -21,15 +21,17 @@ public sealed class PaymentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<PaymentResponse>> Create([FromBody] CreatePaymentRequest request, CancellationToken ct)
+    public async Task<ActionResult<PaymentResponse>> Create(
+        [FromBody] CreatePaymentRequest request,
+        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
+        CancellationToken ct)
     {
-        if (!Request.Headers.TryGetValue(IdempotencyHeader, out var keyValues) ||
-            string.IsNullOrWhiteSpace(keyValues.FirstOrDefault()))
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
         {
             return BadRequest(new { error = $"Missing required header: {IdempotencyHeader}" });
         }
 
-        var idemKey = keyValues.First()!.Trim();
+        var idemKey = idempotencyKey.Trim();
 
         if (request.Amount <= 0) return BadRequest(new { error = "Amount must be greater than 0." });
         if (string.IsNullOrWhiteSpace(request.Currency) || request.Currency.Length != 3)
