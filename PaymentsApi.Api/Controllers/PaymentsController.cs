@@ -68,7 +68,7 @@ public sealed class PaymentsController : ControllerBase
             CreatedAtUtc = DateTime.UtcNow
         };
 
-        // Transaction: insert payment + idempotency key atomically
+        // Transaction: insert payment + idempotency key
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
         try
         {
